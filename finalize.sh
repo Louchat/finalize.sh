@@ -10,7 +10,6 @@ if [[ ! $choice =~ ^[Oo]$ ]]; then
     exit 0
 fi
 
-# Fonction pour check et installer Flatpak si absent
 install_flatpak() {
     if ! command -v flatpak &>/dev/null; then
         echo "📦 Flatpak non trouvé, installation en cours..."
@@ -20,7 +19,6 @@ install_flatpak() {
     fi
 }
 
-# Fonction pour installer Git si absent
 install_git() {
     if ! command -v git &>/dev/null; then
         echo "📦 Git non trouvé, installation en cours..."
@@ -30,7 +28,6 @@ install_git() {
     fi
 }
 
-# Fonction pour ajouter Flathub si absent
 add_flathub() {
     if ! flatpak remotes | grep -q flathub; then
         echo "🛰️ Ajout du dépôt Flathub..."
@@ -40,7 +37,6 @@ add_flathub() {
     fi
 }
 
-# Fonction pour installer Flatpak apps si manquantes
 install_flatpak_apps() {
     apps=(
         "org.prismlauncher.PrismLauncher"
@@ -58,7 +54,6 @@ install_flatpak_apps() {
     done
 }
 
-# Fonction pour installer les snaps si manquants
 install_snap_apps() {
     snaps=(
         "opera"
@@ -76,7 +71,16 @@ install_snap_apps() {
     done
 }
 
-# Modifier GRUB timeout à -1 si nécessaire
+# Nouvelle fonction pour installer le launcher Minecraft officiel
+install_minecraft_launcher() {
+    if snap list | grep -q "^minecraft "; then
+        echo "✅ Launcher Minecraft déjà installé via snap"
+    else
+        echo "⬇️ Installation du launcher Minecraft officiel via snap..."
+        sudo snap install minecraft
+    fi
+}
+
 set_grub_timeout() {
     grub_file="/etc/default/grub"
     if grep -q 'GRUB_TIMEOUT=-1' "$grub_file"; then
@@ -89,14 +93,13 @@ set_grub_timeout() {
     fi
 }
 
-# Installer le thème GRUB si pas déjà fait
 install_grub_theme() {
     theme_dir="/boot/grub/themes/Cipher"
     if [ -d "$theme_dir" ]; then
         echo "✅ Thème GRUB Cipher déjà installé"
     else
         echo "🎨 Installation du thème GRUB Cipher..."
-        install_git  # Installer git si nécessaire
+        install_git
         git clone https://github.com/voidlhf/StarRailGrubThemes.git /tmp/StarRailGrubThemes
         sudo mkdir -p /boot/grub/themes
         sudo cp -r /tmp/StarRailGrubThemes/assets/themes/Cipher /boot/grub/themes/
@@ -106,7 +109,6 @@ install_grub_theme() {
     fi
 }
 
-# Afficher le wallpaper (à adapter si tu veux)
 set_wallpaper() {
     wallpaper_path="$HOME/Images/wallpeper.jpg"
     if [ -f "$wallpaper_path" ]; then
@@ -124,11 +126,12 @@ install_git
 add_flathub
 install_flatpak_apps
 install_snap_apps
+install_minecraft_launcher  
 set_grub_timeout
 install_grub_theme
 set_wallpaper
+sudo update-grub
 
 echo "🌟 Script terminé, enjoy ton setup !"
 read -n 1 -s -r -p "Appuie sur une touche pour quitter..."
 echo
-
